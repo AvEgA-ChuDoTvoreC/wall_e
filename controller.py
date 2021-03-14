@@ -46,6 +46,7 @@ class Controller:
                                baudrate=9600,
                                bytesize=serial.EIGHTBITS,
                                write_timeout=0)
+        self.run()
 
     def forward_move(self):
         if self.y > 127 or (self.y == 0 and (self.x < 127 < self.x)):
