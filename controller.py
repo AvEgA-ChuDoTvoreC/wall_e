@@ -30,10 +30,15 @@ import serial
 
 class Controller:
     def __init__(self, pin: str, x_coord: int, y_coord: int):
-        self.pin = pin
-        self.twist_speed = 0
+
         self.right_motor_hex_string = list()
         self.left_motor_hex_string = list()
+        self.motor_speed = 0
+        self.twist_speed = 0
+
+        self.pin = pin
+        self.x = x_coord
+        self.y = y_coord
 
         self.timeout = 0.5
         self.write_timeout = 0
@@ -42,60 +47,67 @@ class Controller:
                                bytesize=serial.EIGHTBITS,
                                write_timeout=0)
 
+    def forward_move(self):
+        if self.y > 127 or (self.y == 0 and (self.x < 127 < self.x)):
+            print("Forward move")
+            self.motor_speed = self.y - 127
+
+            if self.x < 127:
+                self.twist_speed = 127 - self.x  # left
+                self.left_motor_hex_string = [0xAA, 0x0A, 0x0D]
+                self.left_motor_hex_string.append(self.motor_speed - self.twist_speed)
+
+                self.right_motor_hex_string = [0xAA, 0x0A, 0x0B]
+                self.right_motor_hex_string.append(self.motor_speed)
+
+            elif self.x > 127:
+                self.twist_speed = self.x - 127  # right
+                self.left_motor_hex_string = [0xAA, 0x0A, 0x0D]
+                self.left_motor_hex_string.append(self.motor_speed)
+
+                self.right_motor_hex_string = [0xAA, 0x0A, 0x0B]
+                self.right_motor_hex_string.append(self.motor_speed - self.twist_speed)
+
+            else:
+                self.left_motor_hex_string = [0xAA, 0x0A, 0x0D]
+                self.left_motor_hex_string.append(self.motor_speed)
+
+                self.right_motor_hex_string = [0xAA, 0x0A, 0x0B]
+                self.right_motor_hex_string.append(self.motor_speed)
+
+    def reverse_move(self):
+        if self.y < 127:
+            print("Reverse move")
+            self.motor_speed = 127 - self.y
+
+            if self.x < 127:
+                self.twist_speed = 127 - self.x  # left
+                self.left_motor_hex_string = [0xAA, 0x0A, 0x09]
+                self.left_motor_hex_string.append(self.motor_speed)
+
+                self.right_motor_hex_string = [0xAA, 0x0A, 0x0F]
+                self.right_motor_hex_string.append(self.motor_speed - self.twist_speed)
+
+            elif self.x > 127:
+                self.twist_speed = self.x - 127  # right
+                self.left_motor_hex_string = [0xAA, 0x0A, 0x09]
+                self.left_motor_hex_string.append(self.motor_speed - self.twist_speed)
+
+                self.right_motor_hex_string = [0xAA, 0x0A, 0x0F]
+                self.right_motor_hex_string.append(self.motor_speed)
+
+            else:
+                self.left_motor_hex_string = [0xAA, 0x0A, 0x09]
+                self.left_motor_hex_string.append(self.motor_speed)
+
+                self.right_motor_hex_string = [0xAA, 0x0A, 0x0F]
+                self.right_motor_hex_string.append(self.motor_speed)
+
+    def run(self):
         try:
-            if y_coord > 127:
-                print("Forward move")
-                self.motor_speed = y_coord - 127
+            self.forward_move()
+            self.reverse_move()
 
-                if x_coord < 127:
-                    self.twist_speed = 127 - x_coord    # left
-                    self.left_motor_hex_string = [0xAA, 0x0A, 0x0D]
-                    self.left_motor_hex_string.append(self.motor_speed - self.twist_speed)
-
-                    self.right_motor_hex_string = [0xAA, 0x0A, 0x0B]
-                    self.right_motor_hex_string.append(self.motor_speed)
-
-                elif x_coord > 127:
-                    self.twist_speed = x_coord - 127  # right
-                    self.left_motor_hex_string = [0xAA, 0x0A, 0x0D]
-                    self.left_motor_hex_string.append(self.motor_speed)
-
-                    self.right_motor_hex_string = [0xAA, 0x0A, 0x0B]
-                    self.right_motor_hex_string.append(self.motor_speed - self.twist_speed)
-
-                else:
-                    self.left_motor_hex_string = [0xAA, 0x0A, 0x0D]
-                    self.left_motor_hex_string.append(self.motor_speed)
-
-                    self.right_motor_hex_string = [0xAA, 0x0A, 0x0B]
-                    self.right_motor_hex_string.append(self.motor_speed)
-
-            elif y_coord < 127:
-                print("Reverse move")
-                self.motor_speed = 127 - y_coord
-
-                if x_coord < 127:
-                    self.twist_speed = 127 - x_coord    # left
-                    self.left_motor_hex_string = [0xAA, 0x0A, 0x09]
-                    self.left_motor_hex_string.append(self.motor_speed)
-
-                    self.right_motor_hex_string = [0xAA, 0x0A, 0x0F]
-                    self.right_motor_hex_string.append(self.motor_speed - self.twist_speed)
-
-                elif x_coord > 127:
-                    self.twist_speed = x_coord - 127   # right
-                    self.left_motor_hex_string = [0xAA, 0x0A, 0x09]
-                    self.left_motor_hex_string.append(self.motor_speed - self.twist_speed)
-
-                    self.right_motor_hex_string = [0xAA, 0x0A, 0x0F]
-                    self.right_motor_hex_string.append(self.motor_speed)
-
-                else:
-                    self.left_motor_hex_string = [0xAA, 0x0A, 0x09]
-                    self.left_motor_hex_string.append(self.motor_speed)
-
-                    self.right_motor_hex_string = [0xAA, 0x0A, 0x0F]
-                    self.right_motor_hex_string.append(self.motor_speed)
         except Exception as e:
             print("WARNING: ", e)
         finally:
