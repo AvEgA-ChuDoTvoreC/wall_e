@@ -45,7 +45,7 @@ def write_virtual_pin_handler(pin, values):
 
 @blynk.handle_event('write V3')
 def write_virtual_pin_handler(pin, value):
-    swap_direction = False
+    # swap_direction = False
     some_list.append(value[0])
     value2 = some_list.pop()
     value1 = some_list.pop()

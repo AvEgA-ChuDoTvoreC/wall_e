@@ -92,6 +92,17 @@ class Controller:
                 self.right_motor_hex_string = [0xAA, 0x0A, 0x0B]
                 self.right_motor_hex_string.append(self.motor_speed)
 
+        else:
+            self.motor_speed = 0
+            print("Stop")
+            self.left_motor_hex_string = [0xAA, 0x0A, 0x0D]
+            self.left_motor_hex_string.append(self.motor_speed)
+
+            self.right_motor_hex_string = [0xAA, 0x0A, 0x0B]
+            self.right_motor_hex_string.append(self.motor_speed)
+
+        print("Speed: ", self.motor_speed)
+
     def reverse_move(self):
         if self.y < self.zero_y:  # or (self.y == self.zero_y and (self.x < self.zero_x < self.x)):
             print("Reverse move")
@@ -130,6 +141,16 @@ class Controller:
 
                 self.right_motor_hex_string = [0xAA, 0x0A, 0x0F]
                 self.right_motor_hex_string.append(self.motor_speed)
+
+        else:
+            self.motor_speed = 0
+            print("Stop")
+            self.left_motor_hex_string = [0xAA, 0x0A, 0x0D]
+            self.left_motor_hex_string.append(self.motor_speed)
+
+            self.right_motor_hex_string = [0xAA, 0x0A, 0x0B]
+            self.right_motor_hex_string.append(self.motor_speed)
+
         print("Speed: ", self.motor_speed)
 
     def run(self):
