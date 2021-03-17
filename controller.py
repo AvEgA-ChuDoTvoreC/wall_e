@@ -40,6 +40,11 @@ class Controller:
         self.x = x_coord
         self.y = y_coord
 
+        self.zero_x = 127
+        self.zero_y = 127
+
+        self.extra_speed = 0
+
         self.timeout = 0.5
         self.write_timeout = 0
         self.s = serial.Serial(port='/dev/ttyS0',
@@ -49,20 +54,31 @@ class Controller:
         self.run()
 
     def forward_move(self):
-        if self.y > 127 or (self.y == 0 and (self.x < 127 < self.x)):
+        if self.y > self.zero_y or (self.y == self.zero_y and (self.x < self.zero_x < self.x)):
             print("Forward move")
-            self.motor_speed = self.y - 127
 
-            if self.x < 127:
-                self.twist_speed = 127 - self.x  # left
+            self.motor_speed = self.y - 127
+            if self.y >= 217:
+                self.motor_speed = 127
+            elif 217 >= self.y > self.zero_y and (self.x <= 37 or self.x >= 217):
+                self.motor_speed = 127
+
+            if self.x < self.zero_x:
+                self.twist_speed = self.zero_x - self.x  # left
+                if self.y == self.zero_y:
+                    self.motor_speed = self.twist_speed
+
                 self.left_motor_hex_string = [0xAA, 0x0A, 0x0D]
                 self.left_motor_hex_string.append(self.motor_speed - self.twist_speed)
 
                 self.right_motor_hex_string = [0xAA, 0x0A, 0x0B]
                 self.right_motor_hex_string.append(self.motor_speed)
 
-            elif self.x > 127:
-                self.twist_speed = self.x - 127  # right
+            elif self.x > self.zero_x:
+                self.twist_speed = self.x - self.zero_x  # right
+                if self.y == self.zero_y:
+                    self.motor_speed = self.twist_speed
+
                 self.left_motor_hex_string = [0xAA, 0x0A, 0x0D]
                 self.left_motor_hex_string.append(self.motor_speed)
 
@@ -77,20 +93,31 @@ class Controller:
                 self.right_motor_hex_string.append(self.motor_speed)
 
     def reverse_move(self):
-        if self.y < 127:
+        if self.y < self.zero_y:  # or (self.y == self.zero_y and (self.x < self.zero_x < self.x)):
             print("Reverse move")
-            self.motor_speed = 127 - self.y
 
-            if self.x < 127:
-                self.twist_speed = 127 - self.x  # left
+            self.motor_speed = 127 - self.y
+            if self.y <= 37:
+                self.motor_speed = 127
+            elif 37 <= self.y < self.zero_y and (self.x <= 37 or self.x >= 217):
+                self.motor_speed = 127
+
+            if self.x < self.zero_x:
+                self.twist_speed = self.zero_x - self.x  # left
+                if self.y == self.zero_y:
+                    self.motor_speed = self.twist_speed
+
                 self.left_motor_hex_string = [0xAA, 0x0A, 0x09]
                 self.left_motor_hex_string.append(self.motor_speed)
 
                 self.right_motor_hex_string = [0xAA, 0x0A, 0x0F]
                 self.right_motor_hex_string.append(self.motor_speed - self.twist_speed)
 
-            elif self.x > 127:
-                self.twist_speed = self.x - 127  # right
+            elif self.x > self.zero_x:
+                self.twist_speed = self.x - self.zero_x  # right
+                if self.y == self.zero_y:
+                    self.motor_speed = self.twist_speed
+
                 self.left_motor_hex_string = [0xAA, 0x0A, 0x09]
                 self.left_motor_hex_string.append(self.motor_speed - self.twist_speed)
 
@@ -103,26 +130,34 @@ class Controller:
 
                 self.right_motor_hex_string = [0xAA, 0x0A, 0x0F]
                 self.right_motor_hex_string.append(self.motor_speed)
+        print("Speed: ", self.motor_speed)
 
     def run(self):
         try:
-            self.forward_move()
-            self.reverse_move()
+            if self.y >= self.zero_y:
+                self.forward_move()
+            else:
+                self.reverse_move()
 
         except Exception as e:
-            print("WARNING: ", e)
+            print("WARNING1: ", e)
         finally:
             self.twister_bister(self.left_motor_hex_string, self.right_motor_hex_string)
 
     def twister_bister(self, left, right):
-        if not self.s.isOpen():
-            self.s.open()
-            self.s.write(bytes(left))
-            self.s.write(bytes(right))
-            self.s.close()
-        else:
-            self.s.write(bytes(left))
-            self.s.write(bytes(right))
-            self.s.close()
+        try:
+            if not self.s.isOpen():
+                self.s.open()
+                self.s.write(bytes(left))
+                print("Serial: ", self.s.read())
+                self.s.write(bytes(right))
+                print("Serial: ", self.s.read())
+                self.s.close()
+            else:
+                self.s.write(bytes(left))
+                self.s.write(bytes(right))
+                self.s.close()
+        except Exception as e:
+            print("WARNING2: ", e)
 
 

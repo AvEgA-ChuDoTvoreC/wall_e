@@ -18,9 +18,12 @@
 # server automatically sends notification about read virtual pin event to hardware
 # this notification captured by current handler
 """
+import time
+
 import blynklib
-from controller import Controller
 import RPi.GPIO as GPIO
+
+from controller import Controller
 
 BLYNK_AUTH = '5EinGm43Rd0V8LeDurqn1TZyKY4DH1e-'
 READ_PRINT_MSG = "[READ_VIRTUAL_PIN_EVENT] Pin: V{}"
@@ -29,6 +32,7 @@ WRITE_EVENT_PRINT_MSG = "[WRITE_VIRTUAL_PIN_EVENT] Pin: V{} Value: '{}'"
 blynk = blynklib.Blynk(BLYNK_AUTH, log=print)
 
 some_list = []
+control_list = []
 
 
 # register handler for virtual pin V2 write event
@@ -41,11 +45,34 @@ def write_virtual_pin_handler(pin, values):
 
 @blynk.handle_event('write V3')
 def write_virtual_pin_handler(pin, value):
+    swap_direction = False
     some_list.append(value[0])
     value2 = some_list.pop()
     value1 = some_list.pop()
+
+    control_list.append(value2)
+    if int(control_list[-1]) < 127 < int(control_list[-2]):
+        value2 = '127'
+        value1 = '127'
+        swap_direction = True
+        print("Swap direction")
+    elif int(control_list[-2]) < 127 < int(control_list[-1]):
+        value2 = '127'
+        value1 = '127'
+        swap_direction = True
+        print("Swap direction")
+    else:
+        swap_direction = False
+
+    if len(control_list) >= 2:
+        control_list.pop(0)
+
     print("Write: ", WRITE_EVENT_PRINT_MSG.format(pin, [value1, value2]))
-    Controller(pin="V3", x_coord=int(value1), y_coord=int(value2))
+    if not swap_direction:
+        Controller(pin="V3", x_coord=int(value1), y_coord=int(value2))
+    else:
+        Controller(pin="V3", x_coord=int(value1), y_coord=int(value2))
+        time.sleep(0.5)
     some_list.clear()
 
 
