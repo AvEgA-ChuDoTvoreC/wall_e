@@ -25,3 +25,7 @@ $ python robot_move.py
 Schema below will help to understand the way to set up joystick via code:
 
 ![joystick_diagram](https://github.com/AvEgA-ChuDoTvoreC/wall_e/blob/main/pic/joystick_diagram.png)
+
+![raspberrypi](https://github.com/AvEgA-ChuDoTvoreC/wall_e/blob/main/pic/raspberrypi.png)
+![rasp_pins](https://github.com/AvEgA-ChuDoTvoreC/wall_e/blob/main/pic/rasp_pins.png)
+
